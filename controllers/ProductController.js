@@ -128,19 +128,9 @@ exports.updateProduct = async (req, res) => {
     });
   }
 };
-
 exports.deleteProduct = async (req, res) => {
   try {
-
-    const product = await Product.findByIdAndUpdate(
-      req.params.id,
-      {
-        status: false
-      },
-      {
-        new: true
-      }
-    );
+    const product = await Product.findByIdAndDelete(req.params.id);
 
     if (!product) {
       return res.status(404).json({
