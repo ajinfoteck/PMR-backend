@@ -11,7 +11,7 @@ const {
   getAllUsers,
   deleteUser,
   getApprovedUsers,
-} = require("../controllers/authcontroller");
+} = require("../controllers/authController");
 
 const { protect, adminOnly } = require("../middleware/authMiddleware");
 
