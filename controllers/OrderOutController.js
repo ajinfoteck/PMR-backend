@@ -552,17 +552,28 @@ exports.getOrderOutCustomersByProduct = async (req, res) => {
       "items.productName": productName,
     });
 
-    const result = orders.map(order => ({
-      customerName: order.vendorName,
-      saleDate: order.saleDate,
-      purchaseTime: order.purchaseTime,
-      totalAmount: order.totalAmount,
-      paymentMethod: order.paymentMethod,
-      balanceAmount: order.balanceAmount,
-    }));
+    const result = orders.map(order => {
+      const item = order.items.find(
+        i => i.productName === productName
+      );
+
+      return {
+        customerName: order.vendorName,
+        saleDate: order.saleDate,
+        purchaseTime: order.purchaseTime,
+        paymentMethod: order.paymentMethod,
+        balanceAmount: order.balanceAmount,
+
+        quantity: item?.quantity || 0,
+        rate: item?.rate || 0,
+        total: item?.total || 0,
+      };
+    });
 
     res.json(result);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({
+      message: err.message,
+    });
   }
 };
