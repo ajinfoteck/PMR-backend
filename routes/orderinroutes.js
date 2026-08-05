@@ -18,15 +18,7 @@ router.post("/", protect, addOrderIn);
 
 router.get("/", protect, getAllOrderIn);
 
-router.get("/:id", protect, getOrderInById);
 
-router.put("/:id", protect,adminOnly, updateOrderIn);
-
-router.delete("/:id", protect,adminOnly, deleteOrderIn);
-
-const upload = require("../middleware/upload");
-
-router.post("/", protect, upload.single("image"), addOrderIn);
 //inside after clicking the tile
 router.get(
   "/products",
@@ -39,5 +31,17 @@ router.get(
    protect,adminOnly,
   getOrderInProductDetails
 );
+
+
+router.get("/:id", protect, getOrderInById);
+
+router.put("/:id", protect,adminOnly, updateOrderIn);
+
+router.delete("/:id", protect,adminOnly, deleteOrderIn);
+
+const upload = require("../middleware/upload");
+
+router.post("/", protect, upload.single("image"), addOrderIn);
+
 
 module.exports = router;
