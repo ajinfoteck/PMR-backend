@@ -141,6 +141,11 @@ sales.forEach(order => {
   });
 });
 
+// Total Order Count
+const totalOrderInCount = await OrderIn.countDocuments();
+
+const totalOrderOutCount = await OrderOut.countDocuments();
+
 // Top 4 products by sales amount
 const topOrderedProducts = Object.values(productMap)
   .sort(
@@ -174,6 +179,8 @@ const totalPendingPayments =
 
   totalOrderIn,
   totalOrderOut,
+  totalOrderInCount,
+  totalOrderOutCount,
   topOrderedProducts
   }
 });
