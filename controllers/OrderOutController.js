@@ -546,32 +546,22 @@ exports.getOrderOutProducts = async (req, res) => {
 // GET CUSTOMERS OF A PRODUCT
 exports.getOrderOutCustomersByProduct = async (req, res) => {
   try {
-    const productName = req.params.productName;
+    const { productName } = req.params;
 
     const orders = await OrderOut.find({
       "items.productName": productName,
     });
 
-    const customers = [];
+    const result = orders.map(order => ({
+      customerName: order.vendorName,
+      saleDate: order.saleDate,
+      purchaseTime: order.purchaseTime,
+      totalAmount: order.totalAmount,
+      paymentMethod: order.paymentMethod,
+      balanceAmount: order.balanceAmount,
+    }));
 
-    orders.forEach(order => {
-      order.items.forEach(item => {
-        if (item.productName === productName) {
-          customers.push({
-            customerName: order.customerName,
-            businessType: order.businessType,
-            invoiceNo: order.invoiceNo,
-            quantity: item.quantity,
-            rate: item.rate,
-            total: item.total,
-            saleDate: order.saleDate,
-            saleTime: order.saleTime,
-          });
-        }
-      });
-    });
-
-    res.json(customers);
+    res.json(result);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
