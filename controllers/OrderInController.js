@@ -220,3 +220,74 @@ exports.deleteOrderIn =
       counter.sequence
     ).padStart(6, "0")}`;
   };
+
+
+  exports.getOrderInProducts = async (req, res) => {
+  try {
+    const orders = await OrderIn.find();
+
+    const productMap = {};
+
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        if (!productMap[item.productName]) {
+          productMap[item.productName] = {
+            productName: item.productName,
+            totalAmount: 0,
+            orderCount: 0,
+          };
+        }
+
+        productMap[item.productName].totalAmount += item.total || 0;
+        productMap[item.productName].orderCount++;
+      });
+    });
+
+    res.json({
+      success: true,
+      data: Object.values(productMap),
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+exports.getOrderInProductDetails = async (req, res) => {
+  try {
+    const { productName } = req.params;
+
+    const orders = await OrderIn.find();
+
+    const data = [];
+
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        if (item.productName === productName) {
+          data.push({
+            invoiceNo: order.invoiceNo,
+            farmerName: order.farmerName,
+            businessType: order.businessType,
+            quantity: item.quantity,
+            rate: item.rate,
+            total: item.total,
+            purchaseDate: order.purchaseDate,
+            purchaseTime: order.purchaseTime,
+            paymentMethod: order.paymentMethod,
+          });
+        }
+      });
+    });
+
+    res.json({
+      success: true,
+      data,
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};

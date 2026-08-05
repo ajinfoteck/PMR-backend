@@ -25,5 +25,17 @@ router.delete("/:id", protect,adminOnly, deleteOrderIn);
 const upload = require("../middleware/upload");
 
 router.post("/", protect, upload.single("image"), addOrderIn);
+//inside after clicking the tile
+router.get(
+  "/products",
+  auth,
+  orderInController.getOrderInProducts
+);
+
+router.get(
+  "/products/:productName",
+  auth,
+  orderInController.getOrderInProductDetails
+);
 
 module.exports = router;
