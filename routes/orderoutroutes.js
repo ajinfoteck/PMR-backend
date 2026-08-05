@@ -15,7 +15,9 @@ const {
   payBalance,
   getPaymentReport,
   getCustomerSummary,
-  getCustomers
+  getCustomers,
+  getOrderOutProducts,
+  getOrderOutCustomersByProduct
   
 } = require("../controllers/OrderOutController");
 
@@ -31,6 +33,19 @@ router.get(
 
 
 router.get("/customers", protect, getCustomers);
+//after clicking order out tile
+router.get(
+  "/products",
+ protect,adminOnly,
+  getOrderOutProducts
+);
+
+router.get(
+  "/products/:productName",
+  protect,adminOnly,
+  getOrderOutCustomersByProduct
+);
+
 
 router.get("/:id", protect, getOrderOutById);
 

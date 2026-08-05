@@ -514,3 +514,65 @@ exports.getCustomers = async (req, res) => {
     });
   }
 };
+
+// GET ALL PRODUCTS IN ORDER OUT
+exports.getOrderOutProducts = async (req, res) => {
+  try {
+    const orders = await OrderOut.find();
+
+    const productMap = {};
+
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        if (!productMap[item.productName]) {
+          productMap[item.productName] = {
+            productName: item.productName,
+            totalAmount: 0,
+            count: 0,
+          };
+        }
+
+        productMap[item.productName].totalAmount += item.total || 0;
+        productMap[item.productName].count++;
+      });
+    });
+
+    res.json(Object.values(productMap));
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// GET CUSTOMERS OF A PRODUCT
+exports.getOrderOutCustomersByProduct = async (req, res) => {
+  try {
+    const productName = req.params.productName;
+
+    const orders = await OrderOut.find({
+      "items.productName": productName,
+    });
+
+    const customers = [];
+
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        if (item.productName === productName) {
+          customers.push({
+            customerName: order.customerName,
+            businessType: order.businessType,
+            invoiceNo: order.invoiceNo,
+            quantity: item.quantity,
+            rate: item.rate,
+            total: item.total,
+            saleDate: order.saleDate,
+            saleTime: order.saleTime,
+          });
+        }
+      });
+    });
+
+    res.json(customers);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
