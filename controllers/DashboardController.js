@@ -106,41 +106,59 @@ const totalOrderOut = sales.reduce(
   0
 );
 
-// Product-wise Order In Amount & Order Out Amount
+
+// Product-wise Order In Amount, Order Out Amount & Order Counts
 const productMap = {};
 
 // Order In
 purchases.forEach(order => {
+  const countedProducts = new Set();
+
   order.items.forEach(item => {
     if (!productMap[item.productName]) {
       productMap[item.productName] = {
         productName: item.productName,
         orderInAmount: 0,
         orderOutAmount: 0,
+        orderInCount: 0,
+        orderOutCount: 0,
       };
     }
 
-    productMap[item.productName].orderInAmount +=
-      item.total || 0;
+    productMap[item.productName].orderInAmount += item.total || 0;
+
+    // Count only once per order
+    if (!countedProducts.has(item.productName)) {
+      productMap[item.productName].orderInCount++;
+      countedProducts.add(item.productName);
+    }
   });
 });
 
 // Order Out
 sales.forEach(order => {
+  const countedProducts = new Set();
+
   order.items.forEach(item => {
     if (!productMap[item.productName]) {
       productMap[item.productName] = {
         productName: item.productName,
         orderInAmount: 0,
         orderOutAmount: 0,
+        orderInCount: 0,
+        orderOutCount: 0,
       };
     }
 
-    productMap[item.productName].orderOutAmount +=
-      item.total || 0;
+    productMap[item.productName].orderOutAmount += item.total || 0;
+
+    // Count only once per order
+    if (!countedProducts.has(item.productName)) {
+      productMap[item.productName].orderOutCount++;
+      countedProducts.add(item.productName);
+    }
   });
 });
-
 // Total Order Count
 const totalOrderInCount = await OrderIn.countDocuments();
 
