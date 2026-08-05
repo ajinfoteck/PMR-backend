@@ -8,6 +8,8 @@ const {
   getOrderInById,
   updateOrderIn,
   deleteOrderIn,
+  getOrderInProducts,
+  getOrderInProductDetails
 } = require("../controllers/OrderInController");
 
 const { protect, adminOnly } = require("../middleware/authMiddleware");
@@ -28,14 +30,14 @@ router.post("/", protect, upload.single("image"), addOrderIn);
 //inside after clicking the tile
 router.get(
   "/products",
-  auth,
-  orderInController.getOrderInProducts
+   protect,adminOnly,
+  getOrderInProducts
 );
 
 router.get(
   "/products/:productName",
-  auth,
-  orderInController.getOrderInProductDetails
+   protect,adminOnly,
+  getOrderInProductDetails
 );
 
 module.exports = router;
