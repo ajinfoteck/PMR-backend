@@ -221,8 +221,8 @@ exports.deleteOrderIn =
     ).padStart(6, "0")}`;
   };
 
-
-  exports.getOrderInProducts = async (req, res) => {
+  
+exports.getOrderInProducts = async (req, res) => {
   try {
     const orders = await OrderIn.find();
 
@@ -233,13 +233,13 @@ exports.deleteOrderIn =
         if (!productMap[item.productName]) {
           productMap[item.productName] = {
             productName: item.productName,
+            totalQuantity: 0,
             totalAmount: 0,
-            orderCount: 0,
           };
         }
 
-        productMap[item.productName].totalAmount += item.total || 0;
-        productMap[item.productName].orderCount++;
+        productMap[item.productName].totalQuantity += Number(item.quantity || 0);
+        productMap[item.productName].totalAmount += Number(item.total || 0);
       });
     });
 
@@ -247,13 +247,13 @@ exports.deleteOrderIn =
       success: true,
       data: Object.values(productMap),
     });
-
   } catch (err) {
     res.status(500).json({
       message: err.message,
     });
   }
 };
+
 exports.getOrderInProductDetails = async (req, res) => {
   try {
     const { productName } = req.params;
