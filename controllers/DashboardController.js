@@ -106,6 +106,27 @@ const totalOrderOut = sales.reduce(
   0
 );
 
+//total order in qty
+const totalOrderInQuantity = purchases.reduce((sum, order) => {
+  return (
+    sum +
+    order.items.reduce(
+      (qty, item) => qty + (item.quantity || 0),
+      0
+    )
+  );
+}, 0);
+
+// Total order out qty
+const totalOrderOutQuantity = sales.reduce((sum, order) => {
+  return (
+    sum +
+    order.items.reduce(
+      (qty, item) => qty + (item.quantity || 0),
+      0
+    )
+  );
+}, 0);
 
 // Product-wise Order In Amount, Order Out Amount & Order Counts
 const productMap = {};
@@ -197,6 +218,8 @@ const totalPendingPayments =
 
   totalOrderIn,
   totalOrderOut,
+  totalOrderInQuantity,
+  totalOrderOutQuantity,
   totalOrderInCount,
   totalOrderOutCount,
   topOrderedProducts
