@@ -137,22 +137,17 @@ purchases.forEach(order => {
 
   order.items.forEach(item => {
     if (!productMap[item.productName]) {
-      productMap[item.productName] = {
-        productName: item.productName,
-        orderInAmount: 0,
-        orderOutAmount: 0,
-        orderInCount: 0,
-        orderOutCount: 0,
-      };
+     productMap[item.productName] = {
+  productName: item.productName,
+  orderInAmount: 0,
+  orderOutAmount: 0,
+  orderInQuantity: 0,
+  orderOutQuantity: 0,
+};
     }
 
-    productMap[item.productName].orderInAmount += item.total || 0;
-
-    // Count only once per order
-    if (!countedProducts.has(item.productName)) {
-      productMap[item.productName].orderInCount++;
-      countedProducts.add(item.productName);
-    }
+  productMap[item.productName].orderInAmount += Number(item.total || 0);
+productMap[item.productName].orderInQuantity += Number(item.quantity || 0);
   });
 });
 
@@ -171,13 +166,8 @@ sales.forEach(order => {
       };
     }
 
-    productMap[item.productName].orderOutAmount += item.total || 0;
-
-    // Count only once per order
-    if (!countedProducts.has(item.productName)) {
-      productMap[item.productName].orderOutCount++;
-      countedProducts.add(item.productName);
-    }
+    productMap[item.productName].orderOutAmount += Number(item.total || 0);
+productMap[item.productName].orderOutQuantity += Number(item.quantity || 0);
   });
 });
 // Total Order Count
