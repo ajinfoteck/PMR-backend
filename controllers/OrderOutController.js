@@ -514,7 +514,6 @@ exports.getCustomers = async (req, res) => {
     });
   }
 };
-
 // GET ALL PRODUCTS IN ORDER OUT
 exports.getOrderOutProducts = async (req, res) => {
   try {
@@ -527,19 +526,25 @@ exports.getOrderOutProducts = async (req, res) => {
         if (!productMap[item.productName]) {
           productMap[item.productName] = {
             productName: item.productName,
+            totalQuantity: 0,
             totalAmount: 0,
-            count: 0,
           };
         }
 
+        productMap[item.productName].totalQuantity += item.quantity || 0;
         productMap[item.productName].totalAmount += item.total || 0;
-        productMap[item.productName].count++;
       });
     });
 
-    res.json(Object.values(productMap));
+    res.json({
+      success: true,
+      data: Object.values(productMap),
+    });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
   }
 };
 
