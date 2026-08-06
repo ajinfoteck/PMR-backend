@@ -47,3 +47,4 @@ app.use("/api/dashboard", require("./routes/dashboardroutes"));
 
 app.use("/api/reports", require("./routes/reportroutes"));
 
+app.use("/api/stock", require("./routes/stockroutes"));
