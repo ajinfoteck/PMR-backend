@@ -223,3 +223,64 @@ const totalPendingPayments =
     });
   }
 };
+
+//for user
+exports.getTopOrderedProducts = async (req, res) => {
+  try {
+    const purchases = await OrderIn.find();
+    const sales = await OrderOut.find();
+
+    const productMap = {};
+
+    // Order In
+    purchases.forEach(order => {
+      order.items.forEach(item => {
+        if (!productMap[item.productName]) {
+          productMap[item.productName] = {
+            productName: item.productName,
+            orderInAmount: 0,
+            orderOutAmount: 0,
+            orderInQuantity: 0,
+            orderOutQuantity: 0,
+          };
+        }
+
+        productMap[item.productName].orderInAmount += Number(item.total || 0);
+        productMap[item.productName].orderInQuantity += Number(item.quantity || 0);
+      });
+    });
+
+    // Order Out
+    sales.forEach(order => {
+      order.items.forEach(item => {
+        if (!productMap[item.productName]) {
+          productMap[item.productName] = {
+            productName: item.productName,
+            orderInAmount: 0,
+            orderOutAmount: 0,
+            orderInQuantity: 0,
+            orderOutQuantity: 0,
+          };
+        }
+
+        productMap[item.productName].orderOutAmount += Number(item.total || 0);
+        productMap[item.productName].orderOutQuantity += Number(item.quantity || 0);
+      });
+    });
+
+    const topOrderedProducts = Object.values(productMap)
+      .sort((a, b) => b.orderOutAmount - a.orderOutAmount)
+      .slice(0, 6);
+
+    res.json({
+      success: true,
+      data: topOrderedProducts,
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
