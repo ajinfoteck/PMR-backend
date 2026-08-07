@@ -11,7 +11,7 @@ const { protect, adminOnly } = require("../middleware/authMiddleware");
 router.get("/", protect, adminOnly, getDashboard);
 
 router.get(
-  "/dashboard/top-products",
+  "/top-products",
   protect,
   getTopOrderedProducts
 );
