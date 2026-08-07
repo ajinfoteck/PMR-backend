@@ -10,7 +10,7 @@ exports.getDashboard = async (req, res) => {
       status: true
     });
 
-    const products = await Product.find();
+    const products = await Product.find().sort({ createdAt: 1 });
 
     const totalStock = products.reduce(
       (sum, item) => sum + (item.stock || 0),
@@ -271,7 +271,9 @@ exports.getTopOrderedProducts = async (req, res) => {
       });
     });
 
-   const products = await Product.find();
+  const products = await Product.find().sort({ createdAt: 1 });
+
+
 
 const topOrderedProducts = products
   .map(product => ({
