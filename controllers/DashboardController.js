@@ -181,7 +181,7 @@ const topOrderedProducts = Object.values(productMap)
     (a, b) =>
       b.orderOutAmount - a.orderOutAmount
   )
-  .slice(0, 4);
+  .slice(0, 6);
 
 const totalPendingPayments =
   pendingPurchasePayments + pendingSalesPayments;
