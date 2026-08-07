@@ -176,12 +176,15 @@ const totalOrderInCount = await OrderIn.countDocuments();
 const totalOrderOutCount = await OrderOut.countDocuments();
 
 // Top 4 products by sales amount
-const topOrderedProducts = Object.values(productMap)
-  .sort(
-    (a, b) =>
-      b.orderOutAmount - a.orderOutAmount
-  )
-  .slice(0, 6);
+const topOrderedProducts = products
+  .map(product => ({
+    productName: product.name,
+    orderInAmount: productMap[product.name]?.orderInAmount || 0,
+    orderOutAmount: productMap[product.name]?.orderOutAmount || 0,
+    orderInQuantity: productMap[product.name]?.orderInQuantity || 0,
+    orderOutQuantity: productMap[product.name]?.orderOutQuantity || 0,
+  }))
+  .slice(0, 30);
 
 const totalPendingPayments =
   pendingPurchasePayments + pendingSalesPayments;
@@ -268,10 +271,17 @@ exports.getTopOrderedProducts = async (req, res) => {
       });
     });
 
-    const topOrderedProducts = Object.values(productMap)
-      .sort((a, b) => b.orderOutAmount - a.orderOutAmount)
-      .slice(0, 30);
+   const products = await Product.find();
 
+const topOrderedProducts = products
+  .map(product => ({
+    productName: product.name,
+    orderInAmount: productMap[product.name]?.orderInAmount || 0,
+    orderOutAmount: productMap[product.name]?.orderOutAmount || 0,
+    orderInQuantity: productMap[product.name]?.orderInQuantity || 0,
+    orderOutQuantity: productMap[product.name]?.orderOutQuantity || 0,
+  }))
+  .slice(0, 30);
     res.json({
       success: true,
       data: topOrderedProducts,
