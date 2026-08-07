@@ -4,7 +4,7 @@ const OrderOut = require("../models/Orderout");
 
 exports.getTodayStockSummary = async (req, res) => {
   try {
-    const products = await Product.find({ status: true });
+    const products = await Product.find({ status: true }).sort({ createdAt: -1 });
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
