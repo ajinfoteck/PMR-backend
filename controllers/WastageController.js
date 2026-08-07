@@ -9,8 +9,7 @@ exports.createWastage = async (req, res) => {
             productName,
             quantity,
             reason,
-            wastageDate,
-            wastageTime
+            
         } = req.body;
 
         const product = await Product.findOne({
@@ -32,8 +31,6 @@ exports.createWastage = async (req, res) => {
             productName,
             quantity,
             reason,
-            wastageDate,
-            wastageTime,
            image: req.file
   ? `/uploads/wastage/${req.file.filename}`
   : "",

@@ -32,15 +32,6 @@ const wastageSchema = new mongoose.Schema(
         default: ""
     },
 
-    wastageDate: {
-        type: String,
-        required: true
-    },
-
-    wastageTime: {
-        type: String,
-        required: true
-    },
 
 },
 {
