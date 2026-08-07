@@ -270,7 +270,7 @@ exports.getTopOrderedProducts = async (req, res) => {
 
     const topOrderedProducts = Object.values(productMap)
       .sort((a, b) => b.orderOutAmount - a.orderOutAmount)
-      .slice(0, 6);
+      .slice(0, 30);
 
     res.json({
       success: true,
