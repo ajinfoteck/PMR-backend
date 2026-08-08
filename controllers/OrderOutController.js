@@ -515,9 +515,28 @@ exports.getCustomers = async (req, res) => {
   }
 };
 // GET ALL PRODUCTS IN ORDER OUT
+// GET ORDER OUT PRODUCTS BY DATE RANGE
 exports.getOrderOutProducts = async (req, res) => {
   try {
-    const orders = await OrderOut.find();
+    const { startDate, endDate } = req.query;
+
+    const filter = {};
+
+    // Filter using createdAt only when dates are provided
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+
+      filter.createdAt = {
+        $gte: start,
+        $lte: end,
+      };
+    }
+
+    const orders = await OrderOut.find(filter);
 
     const productMap = {};
 
@@ -531,8 +550,11 @@ exports.getOrderOutProducts = async (req, res) => {
           };
         }
 
-        productMap[item.productName].totalQuantity += item.quantity || 0;
-        productMap[item.productName].totalAmount += item.total || 0;
+        productMap[item.productName].totalQuantity +=
+          Number(item.quantity || 0);
+
+        productMap[item.productName].totalAmount +=
+          Number(item.total || 0);
       });
     });
 
@@ -540,6 +562,7 @@ exports.getOrderOutProducts = async (req, res) => {
       success: true,
       data: Object.values(productMap),
     });
+
   } catch (err) {
     res.status(500).json({
       success: false,
