@@ -223,26 +223,23 @@ exports.deleteOrderIn =
 
   exports.getOrderInProducts = async (req, res) => {
   try {
-    const { date } = req.query;
+    let filter = {};
 
-    let startDate;
-    let endDate;
+    // Date range filter
+    if (req.query.startDate && req.query.endDate) {
+      const startDate = new Date(req.query.startDate);
+      startDate.setHours(0, 0, 0, 0);
 
-    if (date) {
-      startDate = new Date(`${date}T00:00:00`);
-      endDate = new Date(`${date}T23:59:59.999`);
-    }
+      const endDate = new Date(req.query.endDate);
+      endDate.setHours(23, 59, 59, 999);
 
-    const query = {};
-
-    if (date) {
-      query.createdAt = {
+      filter.createdAt = {
         $gte: startDate,
         $lte: endDate,
       };
     }
 
-    const orders = await OrderIn.find(query);
+    const orders = await OrderIn.find(filter);
 
     const productMap = {};
 
@@ -268,6 +265,7 @@ exports.deleteOrderIn =
       success: true,
       data: Object.values(productMap),
     });
+
   } catch (err) {
     res.status(500).json({
       message: err.message,
