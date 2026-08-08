@@ -221,10 +221,28 @@ exports.deleteOrderIn =
     ).padStart(6, "0")}`;
   };
 
-  
-exports.getOrderInProducts = async (req, res) => {
+  exports.getOrderInProducts = async (req, res) => {
   try {
-    const orders = await OrderIn.find();
+    const { date } = req.query;
+
+    let startDate;
+    let endDate;
+
+    if (date) {
+      startDate = new Date(`${date}T00:00:00`);
+      endDate = new Date(`${date}T23:59:59.999`);
+    }
+
+    const query = {};
+
+    if (date) {
+      query.createdAt = {
+        $gte: startDate,
+        $lte: endDate,
+      };
+    }
+
+    const orders = await OrderIn.find(query);
 
     const productMap = {};
 
@@ -238,8 +256,11 @@ exports.getOrderInProducts = async (req, res) => {
           };
         }
 
-        productMap[item.productName].totalQuantity += Number(item.quantity || 0);
-        productMap[item.productName].totalAmount += Number(item.total || 0);
+        productMap[item.productName].totalQuantity +=
+          Number(item.quantity || 0);
+
+        productMap[item.productName].totalAmount +=
+          Number(item.total || 0);
       });
     });
 
