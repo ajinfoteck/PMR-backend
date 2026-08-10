@@ -80,6 +80,10 @@ totalAmount: {
       type: String,
       required: true,
     },
+    paidBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
 ],
 
