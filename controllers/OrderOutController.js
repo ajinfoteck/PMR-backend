@@ -354,18 +354,23 @@ exports.getPaymentReport = async (req, res) => {
   try {
     const orders = await OrderOut.find()
       .select(
-        "vendorName totalAmount paidAmount balanceAmount paymentMethod paymentHistory saleDate saleTime createdBy"
+        "orderInId vendorName totalAmount paidAmount balanceAmount paymentMethod paymentHistory saleDate saleTime createdBy"
       )
       .sort({ createdAt: -1 });
 
-    // Collect all user IDs
+    // ==========================================
+    // COLLECT USER IDS
+    // ==========================================
+
     const userIds = [];
 
     orders.forEach((order) => {
+      // Order Out creator
       if (order.createdBy) {
         userIds.push(order.createdBy.toString());
       }
 
+      // Balance payment users
       order.paymentHistory.forEach((payment) => {
         if (payment.paidBy) {
           userIds.push(payment.paidBy.toString());
@@ -373,46 +378,107 @@ exports.getPaymentReport = async (req, res) => {
       });
     });
 
-    // Remove duplicate IDs
-    const uniqueUserIds = [...new Set(userIds)];
+    // ==========================================
+    // COLLECT ORDER IN IDS
+    // ==========================================
 
-    // Get users WITHOUT populate
+    const orderInIds = orders
+      .filter((order) => order.orderInId)
+      .map((order) => order.orderInId);
+
+    // ==========================================
+    // GET USERS WITHOUT POPULATE
+    // ==========================================
+
+    const uniqueUserIds = [
+      ...new Set(userIds),
+    ];
+
     const users = await User.find({
-      _id: { $in: uniqueUserIds },
+      _id: {
+        $in: uniqueUserIds,
+      },
     }).select("_id name");
 
-    // Create ID -> name map
     const userMap = {};
 
     users.forEach((user) => {
       userMap[user._id.toString()] = user.name;
     });
 
-    // Create report
+    // ==========================================
+    // GET ORDER IN RECORDS
+    // ==========================================
+
+    const orderIns = await OrderIn.find({
+      _id: {
+        $in: orderInIds,
+      },
+    }).select("_id createdBy");
+
+    // ==========================================
+    // ORDER IN ID -> CREATOR ID
+    // ==========================================
+
+    const orderInCreatorIds = {};
+
+    orderIns.forEach((orderIn) => {
+      if (orderIn.createdBy) {
+        orderInCreatorIds[
+          orderIn._id.toString()
+        ] = orderIn.createdBy.toString();
+      }
+    });
+
+    // ==========================================
+    // BUILD REPORT
+    // ==========================================
+
     const report = orders.map((order) => {
 
-      // =====================================
-      // ORDER OUT CREATED BY
-      // =====================================
+      // ------------------------------------------
+      // ORDER OUT CREATOR
+      // ------------------------------------------
 
-      let createdByName = "Unknown";
+      let orderOutCreatedBy = "Unknown";
 
       if (order.createdBy) {
-        createdByName =
-          userMap[order.createdBy.toString()] || "Unknown";
+        orderOutCreatedBy =
+          userMap[
+            order.createdBy.toString()
+          ] || "Unknown";
       }
 
-      // =====================================
-      // PAYMENT CALCULATION
-      // =====================================
+      // ------------------------------------------
+      // ORDER IN CREATOR
+      // ------------------------------------------
 
-      let runningBalance =
+      let orderInCreatedBy = "Unknown";
+
+      if (order.orderInId) {
+        const creatorId =
+          orderInCreatorIds[
+            order.orderInId.toString()
+          ];
+
+        if (creatorId) {
+          orderInCreatedBy =
+            userMap[creatorId] || "Unknown";
+        }
+      }
+
+      // ------------------------------------------
+      // PAYMENT CALCULATION
+      // ------------------------------------------
+
+      const totalAmount =
         Number(order.totalAmount) || 0;
 
       const laterPayments =
         order.paymentHistory.reduce(
           (sum, payment) =>
-            sum + Number(payment.amount || 0),
+            sum +
+            Number(payment.amount || 0),
           0
         );
 
@@ -420,32 +486,46 @@ exports.getPaymentReport = async (req, res) => {
         Number(order.paidAmount || 0) -
         laterPayments;
 
+      let runningBalance =
+        totalAmount;
+
       const history = [];
 
-      // =====================================
-      // INITIAL PAYMENT
-      // =====================================
+      // ------------------------------------------
+      // INITIAL ORDER OUT PAYMENT
+      // ------------------------------------------
 
       if (initialPayment > 0) {
-        runningBalance -= initialPayment;
+
+        runningBalance -=
+          initialPayment;
 
         history.push({
           type: "Initial Payment",
+
           amount: initialPayment,
-          paymentMethod: order.paymentMethod,
-          paymentDate: order.saleDate,
-          paymentTime: order.saleTime,
 
-          // Order creator
-          paidBy: createdByName,
+          paymentMethod:
+            order.paymentMethod,
 
-          balance: runningBalance,
+          paymentDate:
+            order.saleDate,
+
+          paymentTime:
+            order.saleTime,
+
+          // ORDER OUT CREATOR
+          paidBy:
+            orderOutCreatedBy,
+
+          balance:
+            runningBalance,
         });
       }
 
-      // =====================================
+      // ------------------------------------------
       // BALANCE PAYMENTS
-      // =====================================
+      // ------------------------------------------
 
       order.paymentHistory.forEach(
         (payment, index) => {
@@ -453,7 +533,8 @@ exports.getPaymentReport = async (req, res) => {
           runningBalance -=
             Number(payment.amount || 0);
 
-          let paidByName = "Unknown";
+          let paidByName =
+            "Unknown";
 
           if (payment.paidBy) {
             paidByName =
@@ -463,45 +544,72 @@ exports.getPaymentReport = async (req, res) => {
           }
 
           history.push({
-            type: `Paid ${index + 1}`,
-            amount: payment.amount,
+            type:
+              `Paid ${index + 1}`,
+
+            amount:
+              payment.amount,
+
             paymentMethod:
               payment.paymentMethod,
+
             paymentDate:
               payment.paymentDate,
+
             paymentTime:
               payment.paymentTime,
 
-            paidBy: paidByName,
+            // PERSON WHO PAID BALANCE
+            paidBy:
+              paidByName,
 
-            balance: runningBalance,
+            balance:
+              runningBalance,
           });
         }
       );
 
-      // =====================================
-      // RETURN REPORT
-      // =====================================
+      // ------------------------------------------
+      // RETURN
+      // ------------------------------------------
 
       return {
-        orderId: order._id,
-        customerName: order.vendorName,
+        orderId:
+          order._id,
+
+        customerName:
+          order.vendorName,
+
+        // ORDER IN CREATOR
+        orderInCreatedBy:
+          orderInCreatedBy,
 
         // ORDER OUT CREATOR
-        createdBy: order.createdBy,
+        orderOutCreatedBy:
+          orderOutCreatedBy,
 
-        totalAmount: order.totalAmount,
-        paidAmount: order.paidAmount,
-        balanceAmount: order.balanceAmount,
+        totalAmount:
+          order.totalAmount,
 
-        paymentHistory: history,
+        paidAmount:
+          order.paidAmount,
+
+        balanceAmount:
+          order.balanceAmount,
+
+        paymentHistory:
+          history,
       };
     });
 
     res.json(report);
 
   } catch (err) {
-    console.error("PAYMENT REPORT ERROR:", err);
+
+    console.error(
+      "PAYMENT REPORT ERROR:",
+      err
+    );
 
     res.status(500).json({
       message: err.message,
