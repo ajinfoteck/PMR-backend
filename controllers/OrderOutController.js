@@ -2,6 +2,7 @@ const OrderOut = require("../models/Orderout");
 const Product = require("../models/Product");
 const OrderIn = require("../models/Orderin");
 const Wastage = require("../models/wastage");
+const User = require("../models/User");
 
 // CREATE
 exports.addOrderOut = async (req, res) => {
