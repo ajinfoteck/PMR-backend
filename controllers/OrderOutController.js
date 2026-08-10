@@ -349,7 +349,6 @@ exports.payBalance = async (req, res) => {
 };
 
 const User = require("../models/user_model");
-const OrderOut = require("../models/order_out_model");
 
 exports.getPaymentReport = async (req, res) => {
   try {

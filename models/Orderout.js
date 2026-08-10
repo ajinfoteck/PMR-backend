@@ -108,7 +108,7 @@ totalAmount: {
     },
   },
   
-  {createdBy: req.user._id,
+  {
     timestamps: true,
   }
   
