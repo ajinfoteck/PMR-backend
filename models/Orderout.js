@@ -106,10 +106,6 @@ totalAmount: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    orderInId: {
-  type: mongoose.Schema.Types.ObjectId,
-  ref: "OrderIn",
-},
   },
   
   {

@@ -115,7 +115,6 @@ paidAmount: totalPaid,
   saleDate,
   saleTime,
   image,
-  orderInId,
   createdBy: req.user._id,
 });
 
