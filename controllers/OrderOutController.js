@@ -311,10 +311,12 @@ exports.payBalance = async (req, res) => {
 
     const paymentDate = now.toISOString().split("T")[0];
 
-    const paymentTime = now.toLocaleTimeString("en-IN", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+   const paymentTime = now.toLocaleTimeString("en-IN", {
+  timeZone: "Asia/Kolkata",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: true,
+});
 
     // Add payment history
     order.paymentHistory.push({
