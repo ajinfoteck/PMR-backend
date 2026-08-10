@@ -351,6 +351,7 @@ exports.payBalance = async (req, res) => {
 exports.getPaymentReport = async (req, res) => {
   try {
     const orders = await OrderOut.find()
+      .populate("paymentHistory.paidBy", "name")
       .select(
         "vendorName totalAmount paidAmount balanceAmount paymentMethod paymentHistory saleDate saleTime"
       )
@@ -365,7 +366,7 @@ exports.getPaymentReport = async (req, res) => {
       );
 
       const initialPayment =
-        Number(order.paidAmount || 0) - laterPayments;
+          Number(order.paidAmount || 0) - laterPayments;
 
       const history = [];
 
@@ -379,10 +380,7 @@ exports.getPaymentReport = async (req, res) => {
           paymentMethod: order.paymentMethod || "-",
           paymentDate: order.saleDate || "-",
           paymentTime: order.saleTime || "-",
-
-          // Initial payment was made when order was created
           paidBy: "Initial Order",
-
           balance: runningBalance,
         });
       }
@@ -394,15 +392,13 @@ exports.getPaymentReport = async (req, res) => {
         let paidBy = "Unknown";
 
         if (payment.paidBy) {
-          // New records: ObjectId
-          if (typeof payment.paidBy === "object") {
-            paidBy =
-              payment.paidBy.name ||
-              payment.paidBy._id ||
-              "Unknown";
-          } else {
-            // Old records: String
-            paidBy = payment.paidBy.toString();
+          if (
+            typeof payment.paidBy === "object" &&
+            payment.paidBy.name
+          ) {
+            paidBy = payment.paidBy.name;
+          } else if (typeof payment.paidBy === "string") {
+            paidBy = payment.paidBy;
           }
         }
 
