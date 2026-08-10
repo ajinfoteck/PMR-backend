@@ -279,19 +279,11 @@ exports.deleteOrderOut = async (
   }
 };
 
-
 exports.payBalance = async (req, res) => {
   try {
-    const {
-      amount,
-      paymentMethod,
-    } = req.body;
-
-    console.log(req.body);
-console.log("Payment Method:", paymentMethod);
+    const { amount, paymentMethod } = req.body;
 
     const order = await OrderOut.findById(req.params.id);
-  
 
     if (!order) {
       return res.status(404).json({
@@ -299,52 +291,59 @@ console.log("Payment Method:", paymentMethod);
       });
     }
 
-    const payAmount = Number(amount);
+    const paymentAmount = Number(amount);
 
-    if (isNaN(payAmount) || payAmount <= 0) {
+    if (!paymentAmount || paymentAmount <= 0) {
       return res.status(400).json({
         message: "Invalid payment amount",
       });
     }
 
-    if (payAmount > order.balanceAmount) {
+    if (paymentAmount > order.balanceAmount) {
       return res.status(400).json({
-        message: "Payment amount exceeds balance",
+        message: "Payment cannot exceed balance",
       });
     }
 
-    // Update totals
-    order.paidAmount += payAmount;
-    order.balanceAmount -= payAmount;
-
     const now = new Date();
 
-const currentDate = now.toISOString().split("T")[0];
+    const paymentDate = now.toISOString().split("T")[0];
 
-const currentTime = now.toLocaleTimeString("en-IN", {
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: true,
-});
-
-    // Save payment history
-    order.paymentHistory.push({
-      amount: payAmount,
-       paymentMethod: paymentMethod,  
-       paymentDate: currentDate,
-       paymentTime: currentTime,
+    const paymentTime = now.toLocaleTimeString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
     });
+
+    // Add payment history
+    order.paymentHistory.push({
+      amount: paymentAmount,
+      paymentMethod: paymentMethod,
+      paymentDate: paymentDate,
+      paymentTime: paymentTime,
+
+      // IMPORTANT
+      paidBy: req.user.name,
+    });
+
+    // Update paid amount
+    order.paidAmount =
+      Number(order.paidAmount || 0) + paymentAmount;
+
+    // Update balance
+    order.balanceAmount =
+      Number(order.totalAmount) -
+      Number(order.paidAmount);
 
     await order.save();
 
-    res.json({
-      message: "Payment added successfully",
+    res.status(200).json({
+      message: "Payment successful",
       order,
     });
 
-  } catch (err) {
+  } catch (error) {
     res.status(500).json({
-      message: err.message,
+      message: error.message,
     });
   }
 };
