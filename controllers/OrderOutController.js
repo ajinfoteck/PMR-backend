@@ -118,6 +118,12 @@ paidAmount: totalPaid,
   createdBy: req.user._id,
 });
 
+await OrderIn.findByIdAndUpdate(
+  orderInId,
+  {
+    orderOutCreated: true,
+  }
+);
     res.status(201).json({
       message: "Sales entry created successfully",
       order,
