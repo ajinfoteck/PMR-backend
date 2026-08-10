@@ -7,7 +7,7 @@ const User = require("../models/User");
 // CREATE
 exports.addOrderOut = async (req, res) => {
   try {let {
-  
+  orderInId,
   vendorName,
   businessType,
   items,
