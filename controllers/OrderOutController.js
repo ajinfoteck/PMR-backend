@@ -352,27 +352,76 @@ exports.getPaymentReport = async (req, res) => {
   try {
     const orders = await OrderOut.find()
       .select(
-        "vendorName totalAmount paidAmount balanceAmount paymentMethod paymentHistory saleDate saleTime createdBy"
+        "vendorName totalAmount paidAmount balanceAmount paymentMethod paymentHistory saleDate saleTime createdBy orderInId"
       )
-      .populate("createdBy", "name")
       .sort({ createdAt: -1 });
+
+    // -----------------------------------------
+    // COLLECT ALL USER IDS
+    // -----------------------------------------
+
+    const userIds = [];
+
+    for (const order of orders) {
+      // Order Out creator
+      if (order.createdBy) {
+        userIds.push(order.createdBy.toString());
+      }
+
+      // Balance payment creators
+      for (const payment of order.paymentHistory || []) {
+        if (payment.paidBy) {
+          userIds.push(payment.paidBy.toString());
+        }
+      }
+    }
+
+    // Remove duplicates
+    const uniqueUserIds = [
+      ...new Set(userIds),
+    ];
+
+    // -----------------------------------------
+    // GET USERS WITHOUT POPULATE
+    // -----------------------------------------
+
+    const users = await User.find({
+      _id: { $in: uniqueUserIds },
+    }).select("_id name");
+
+    // -----------------------------------------
+    // CREATE USER ID -> NAME MAP
+    // -----------------------------------------
+
+    const userMap = {};
+
+    users.forEach((user) => {
+      userMap[user._id.toString()] = user.name;
+    });
+
+    // -----------------------------------------
+    // CREATE REPORT
+    // -----------------------------------------
 
     const report = orders.map((order) => {
       let runningBalance = Number(order.totalAmount) || 0;
 
-      const laterPayments = order.paymentHistory.reduce(
-        (sum, p) => sum + Number(p.amount || 0),
-        0
-      );
+      const laterPayments =
+        (order.paymentHistory || []).reduce(
+          (sum, p) =>
+            sum + Number(p.amount || 0),
+          0
+        );
 
       const initialPayment =
-        Number(order.paidAmount || 0) - laterPayments;
+        Number(order.paidAmount || 0) -
+        laterPayments;
 
       const history = [];
 
-      // =========================
-      // INITIAL PAYMENT
-      // =========================
+      // ========================================
+      // INITIAL PAYMENT / ORDER OUT
+      // ========================================
 
       if (initialPayment > 0) {
         runningBalance -= initialPayment;
@@ -381,54 +430,76 @@ exports.getPaymentReport = async (req, res) => {
           type: "Initial Payment",
           amount: initialPayment,
           paymentMethod: order.paymentMethod,
-
           paymentDate: order.saleDate,
           paymentTime: order.saleTime,
 
-          // USER WHO CREATED ORDER OUT
-          paidBy: order.createdBy?.name ?? "Unknown",
+          // ORDER OUT CREATOR
+          paidBy: order.createdBy
+            ? userMap[
+                order.createdBy.toString()
+              ] || "Unknown"
+            : "Unknown",
 
           balance: runningBalance,
         });
       }
 
-      // =========================
+      // ========================================
       // BALANCE PAYMENTS
-      // =========================
+      // ========================================
 
-      order.paymentHistory.forEach((payment, index) => {
-        runningBalance -= Number(payment.amount || 0);
+      (order.paymentHistory || []).forEach(
+        (payment, index) => {
+          runningBalance -= Number(
+            payment.amount || 0
+          );
 
-        history.push({
-          type: `Paid ${index + 1}`,
-          amount: Number(payment.amount || 0),
-          paymentMethod: payment.paymentMethod,
-          paymentDate: payment.paymentDate,
-          paymentTime: payment.paymentTime,
+          history.push({
+            type: `Paid ${index + 1}`,
+            amount: Number(payment.amount || 0),
+            paymentMethod:
+              payment.paymentMethod,
+            paymentDate:
+              payment.paymentDate,
+            paymentTime:
+              payment.paymentTime,
 
-          // USER WHO PAID BALANCE
-          paidBy:
-              payment.paidBy?.name ??
-              payment.paidBy ??
-              "Unknown",
+            // PERSON WHO PAID BALANCE
+            paidBy: payment.paidBy
+              ? userMap[
+                  payment.paidBy.toString()
+                ] || "Unknown"
+              : "Unknown",
 
-          balance: runningBalance,
-        });
-      });
+            balance: runningBalance,
+          });
+        }
+      );
 
       return {
         orderId: order._id,
+
         customerName: order.vendorName,
-        totalAmount: order.totalAmount,
-        paidAmount: order.paidAmount,
-        balanceAmount: order.balanceAmount,
+
+        totalAmount:
+          Number(order.totalAmount) || 0,
+
+        paidAmount:
+          Number(order.paidAmount) || 0,
+
+        balanceAmount:
+          Number(order.balanceAmount) || 0,
+
         paymentHistory: history,
       };
     });
 
     res.json(report);
   } catch (err) {
-    console.error("Payment Report Error:", err);
+    console.error(
+      "Payment report error:",
+      err
+    );
 
     res.status(500).json({
       message: err.message,
