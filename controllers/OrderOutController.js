@@ -322,7 +322,7 @@ exports.payBalance = async (req, res) => {
       paymentTime: paymentTime,
 
       // IMPORTANT
-      paidBy: req.user.name,
+      paidBy: req.user._id,
     });
 
     // Update paid amount
@@ -351,11 +351,11 @@ exports.payBalance = async (req, res) => {
 exports.getPaymentReport = async (req, res) => {
   try {
     const orders = await OrderOut.find()
-      .select(
-        "vendorName totalAmount paidAmount balanceAmount paymentMethod paymentHistory saleDate saleTime"
-      )
-      .populate("paymentHistory.paidBy", "name")
-      .sort({ createdAt: -1 });
+  .populate("paymentHistory.paidBy", "name")
+  .select(
+    "vendorName totalAmount paidAmount balanceAmount paymentMethod paymentHistory saleDate saleTime"
+  )
+  .sort({ createdAt: -1 });
 
     const report = orders.map((order) => {
       let runningBalance = Number(order.totalAmount || 0);
@@ -386,7 +386,9 @@ exports.getPaymentReport = async (req, res) => {
           paymentTime: order.saleTime,
 
           // User who created the Order Out
-          paidBy: "Initial Order",
+          paidBy: payment.paidBy
+  ? payment.paidBy.name
+  : "Unknown",
 
           balance: runningBalance,
         });
