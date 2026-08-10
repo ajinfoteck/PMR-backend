@@ -37,7 +37,7 @@ router.get("/:id", protect, getOrderInById);
 
 router.put("/:id", protect,adminOnly, updateOrderIn);
 
-router.delete("/:id", protect,adminOnly, deleteOrderIn);
+router.delete("/:id", protect,deleteOrderIn);
 
 const upload = require("../middleware/upload");
 
