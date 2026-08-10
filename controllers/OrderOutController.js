@@ -117,6 +117,7 @@ paidAmount: totalPaid,
   image,
   createdBy: req.user._id,
 });
+
 await OrderIn.findByIdAndUpdate(
   orderInId,
   {
@@ -461,6 +462,12 @@ exports.getPaymentReport = async (req, res) => {
         paymentHistory: history,
       };
     });
+    console.log(
+  "ORDER OUT:",
+  order._id,
+  "createdBy:",
+  order.createdBy
+);
 
     res.json(report);
   } catch (err) {
