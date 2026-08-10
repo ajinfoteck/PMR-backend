@@ -107,9 +107,11 @@ totalAmount: {
       ref: "User",
     },
   },
-  {
+  
+  {createdBy: req.user._id,
     timestamps: true,
   }
+  
 );
 
 module.exports = mongoose.model(
