@@ -488,7 +488,7 @@ exports.getPaymentReport = async (req, res) => {
         customerName: order.vendorName,
 
         // ORDER OUT CREATOR
-        createdBy: createdByName,
+        createdBy: order.createdBy,
 
         totalAmount: order.totalAmount,
         paidAmount: order.paidAmount,
