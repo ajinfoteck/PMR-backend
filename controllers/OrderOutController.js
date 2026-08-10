@@ -348,7 +348,6 @@ exports.payBalance = async (req, res) => {
   }
 };
 
-const User = require("../models/user_model");
 
 exports.getPaymentReport = async (req, res) => {
   try {
