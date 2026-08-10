@@ -7,7 +7,7 @@ const User = require("../models/User");
 // CREATE
 exports.addOrderOut = async (req, res) => {
   try {let {
-  orderInId,
+  
   vendorName,
   businessType,
   items,
@@ -115,6 +115,7 @@ paidAmount: totalPaid,
   saleDate,
   saleTime,
   image,
+  orderInId,
   createdBy: req.user._id,
 });
 
