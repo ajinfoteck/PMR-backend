@@ -272,7 +272,7 @@ exports.deleteOrderOut = async (
 
     res.json({
       message:
-        "Order deleted successfully",
+        "Order out deleted successfully",
     });
   } catch (error) {
     res.status(500).json({
